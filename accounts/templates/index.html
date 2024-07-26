@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>Bank Account Kata</title>
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    .sortable {
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1 class="my-4">Bank Account Kata</h1>
+    <div id="login-section" class="row">
+      <div class="col-md-6 offset-md-3">
+        <h2>Login / Create Account</h2>
+        <form id="login-form">
+          <div class="form-group">
+            <label for="login-iban">IBAN</label>
+            <input type="text" id="login-iban" class="form-control">
+          </div>
+          <button type="submit" class="btn btn-primary">Login / Create Account</button>
+        </form>
+      </div>
+    </div>
+    <div id="account-section" class="row d-none">
+      <div class="col-md-12">
+        <ul class="nav nav-tabs" id="accountTabs" role="tablist">
+          <li class="nav-item">
+            <a class="nav-link active" id="details-tab" data-toggle="tab" href="#details" role="tab"
+              aria-controls="details" aria-selected="true">Account Details</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" id="deposit-tab" data-toggle="tab" href="#deposit" role="tab" aria-controls="deposit"
+              aria-selected="false">Deposit</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" id="withdraw-tab" data-toggle="tab" href="#withdraw" role="tab" aria-controls="withdraw"
+              aria-selected="false">Withdraw</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" id="transfer-tab" data-toggle="tab" href="#transfer" role="tab" aria-controls="transfer"
+              aria-selected="false">Transfer</a>
+          </li>
+        </ul>
+        <div class="tab-content" id="accountTabsContent">
+          <div class="tab-pane fade show active" id="details" role="tabpanel" aria-labelledby="details-tab">
+            <h2 class="my-4">Account Details</h2>
+            <ul id="account-details" class="list-group"></ul>
+            <h2 class="my-4">Transactions</h2>
+            <div class="form-row">
+              <div class="form-group col-md-3">
+                <label for="transaction-type">Type</label>
+                <select id="transaction-type" class="form-control">
+                  <option value="">All</option>
+                  <option value="deposit">Deposit</option>
+                  <option value="withdraw">Withdraw</option>
+                  <option value="transfer">Transfer</option>
+                </select>
+              </div>
+              <div class="form-group col-md-3">
+                <label for="start-date">Start Date</label>
+                <input type="date" id="start-date" class="form-control">
+              </div>
+              <div class="form-group col-md-3">
+                <label for="end-date">End Date</label>
+                <input type="date" id="end-date" class="form-control">
+              </div>
+              <div class="form-group col-md-3 align-self-end">
+                <button class="btn btn-primary" onclick="loadFirstPage()">Search</button>
+              </div>
+            </div>
+            <table class="table">
+              <thead>
+                <tr>
+                  <th class="sortable" onclick="toggleSortOrder()">Date <span id="sort-icon">↓</span></th>
+                  <th>Type</th>
+                  <th>Amount</th>
+                  <th>Balance</th>
+                </tr>
+              </thead>
+              <tbody id="transactions-table-body"></tbody>
+            </table>
+            <nav>
+              <ul class="pagination">
+                <li class="page-item"><a class="page-link" href="#" id="first-page">First</a></li>
+                <li class="page-item"><a class="page-link" href="#" id="prev-page">Previous</a></li>
+                <li class="page-item"><a class="page-link" href="#" id="next-page">Next</a></li>
+                <li class="page-item"><a class="page-link" href="#" id="last-page">Last</a></li>
+              </ul>
+            </nav>
+          </div>
+          <div class="tab-pane fade" id="deposit" role="tabpanel" aria-labelledby="deposit-tab">
+            <h2 class="my-4">Deposit</h2>
+            <form id="deposit-form">
+              <div class="form-group">
+                <label for="deposit-amount">Amount</label>
+                <input type="number" id="deposit-amount" class="form-control">
+              </div>
+              <button type="submit" class="btn btn-success">Deposit</button>
+            </form>
+          </div>
+          <div class="tab-pane fade" id="withdraw" role="tabpanel" aria-labelledby="withdraw-tab">
+            <h2 class="my-4">Withdraw</h2>
+            <form id="withdraw-form">
+              <div class="form-group">
+                <label for="withdraw-amount">Amount</label>
+                <input type="number" id="withdraw-amount" class="form-control">
+              </div>
+              <button type="submit" class="btn btn-danger">Withdraw</button>
+            </form>
+          </div>
+          <div class="tab-pane fade" id="transfer" role="tabpanel" aria-labelledby="transfer-tab">
+            <h2 class="my-4">Transfer</h2>
+            <form id="transfer-form">
+              <div class="form-group">
+                <label for="transfer-to-iban">To IBAN</label>
+                <input type="text" id="transfer-to-iban" class="form-control">
+              </div>
+              <div class="form-group">
+                <label for="transfer-amount">Amount</label>
+                <input type="number" id="transfer-amount" class="form-control">
+              </div>
+              <button type="submit" class="btn btn-warning">Transfer</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('login-form').addEventListener('submit', handleLogin);
+      document.getElementById('deposit-form').addEventListener('submit', handleDeposit);
+      document.getElementById('withdraw-form').addEventListener('submit', handleWithdraw);
+      document.getElementById('transfer-form').addEventListener('submit', handleTransfer);
+      document.getElementById('first-page').addEventListener('click', loadFirstPage);
+      document.getElementById('prev-page').addEventListener('click', loadPreviousPage);
+      document.getElementById('next-page').addEventListener('click', loadNextPage);
+      document.getElementById('last-page').addEventListener('click', loadLastPage);
+    });
+
+    let currentAccount = null;
+    let currentPage = 1;
+    const pageSize = 2;
+    let totalPages = 1;
+    let sortOrder = '-date';
+
+    function handleLogin(event) {
+      event.preventDefault();
+      const iban = document.getElementById('login-iban').value;
+      fetch('/api/accounts/login_or_create/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ iban: iban }),
+      })
+        .then(response => response.json())
+        .then(data => {
+          if (data.status === 'invalid IBAN') {
+            alert('Invalid IBAN. Please try again.');
+          } else {
+            currentAccount = data.account;
+            document.getElementById('login-section').classList.add('d-none');
+            document.getElementById('account-section').classList.remove('d-none');
+            loadAccountDetails();
+            loadFirstPage();
+          }
+        });
+    }
+
+    function getAccountDetail() {
+      fetch(`/api/accounts/${currentAccount.id}/account_detail/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+        .then(response => response.json())
+        .then(data => {
+          currentAccount = data.account;
+          loadAccountDetails();
+        });
+    }
+
+    function loadAccountDetails() {
+      const accountDetails = document.getElementById('account-details');
+      accountDetails.innerHTML = `
+                <li class="list-group-item"><strong>IBAN:</strong> ${currentAccount.iban}</li>
+                <li class="list-group-item"><strong>Balance:</strong> ${currentAccount.balance}</li>
+            `;
+    }
+
+    function handleDeposit(event) {
+      event.preventDefault();
+      const amount = document.getElementById('deposit-amount').value;
+      fetch(`/api/accounts/${currentAccount.id}/deposit/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ amount: amount }),
+      })
+        .then(response => response.json())
+        .then(data => {
+          alert(data.status);
+          getAccountDetail();
+          loadTransactions();
+        });
+    }
+
+    function handleWithdraw(event) {
+      event.preventDefault();
+      const amount = document.getElementById('withdraw-amount').value;
+      fetch(`/api/accounts/${currentAccount.id}/withdraw/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ amount: amount }),
+      })
+        .then(response => response.json())
+        .then(data => {
+          alert(data.status);
+          getAccountDetail();
+          loadTransactions();
+        });
+    }
+
+    function handleTransfer(event) {
+      event.preventDefault();
+      const targetIban = document.getElementById('transfer-to-iban').value;
+      const amount = document.getElementById('transfer-amount').value;
+      fetch(`/api/accounts/${currentAccount.id}/transfer/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ target_iban: targetIban, amount: amount }),
+      })
+        .then(response => response.json())
+        .then(data => {
+          alert(data.status);
+          getAccountDetail();
+          loadTransactions();
+        });
+    }
+
+    function loadTransactions() {
+      const transactionType = document.getElementById('transaction-type').value;
+      const startDate = document.getElementById('start-date').value;
+      const endDate = document.getElementById('end-date').value;
+      const query = new URLSearchParams({
+        account: currentAccount.id,
+        page: currentPage,
+        page_size: pageSize,
+        sort: sortOrder,
+        transaction_type: transactionType,
+        start_date: startDate,
+        end_date: endDate
+      }).toString();
+
+      fetch(`/api/transactions/?${query}`)
+        .then(response => response.json())
+        .then(data => {
+          const transactionsTableBody = document.getElementById('transactions-table-body');
+          transactionsTableBody.innerHTML = '';
+          data.results.forEach(transaction => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                            <td>${transaction.date}</td>
+                            <td>${transaction.transaction_type}</td>
+                            <td>${transaction.amount}</td>
+                            <td>${transaction.balance}</td>
+                        `;
+            transactionsTableBody.appendChild(tr);
+          });
+
+          totalPages = Math.ceil(data.count / pageSize);
+
+          document.getElementById('first-page').parentElement.classList.toggle('disabled', currentPage === 1);
+          document.getElementById('prev-page').parentElement.classList.toggle('disabled', !data.previous);
+          document.getElementById('next-page').parentElement.classList.toggle('disabled', !data.next);
+          document.getElementById('last-page').parentElement.classList.toggle('disabled', currentPage === totalPages);
+        });
+    }
+
+    function toggleSortOrder() {
+      sortOrder = sortOrder === 'date' ? '-date' : 'date';
+      document.getElementById('sort-icon').textContent = sortOrder === 'date' ? '↑' : '↓';
+      loadFirstPage();
+    }
+
+    function loadFirstPage(event) {
+      event?.preventDefault();
+      currentPage = 1;
+      loadTransactions();
+    }
+
+    function loadPreviousPage(event) {
+      event.preventDefault();
+      if (currentPage > 1) {
+        currentPage--;
+        loadTransactions();
+      }
+    }
+
+    function loadNextPage(event) {
+      event.preventDefault();
+      if (currentPage < totalPages) {
+        currentPage++;
+        loadTransactions();
+      }
+    }
+
+    function loadLastPage(event) {
+      event.preventDefault();
+      currentPage = totalPages;
+      loadTransactions();
+    }
+  </script>
+
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+
+</html>

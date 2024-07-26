@@ -1,0 +1,46 @@
+
+### `.gitignore`
+
+```gitignore
+# Virtual environment
+venv/
+*.pyc
+__pycache__/
+
+# Django
+db.sqlite3
+media/
+
+# Python
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+# Packages
+*.egg
+*.egg-info
+dist
+build
+eggs
+parts
+bin
+var
+sdist
+develop-eggs
+.installed.cfg
+lib
+lib64
+__pycache__
+
+# Pytest
+.cache
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# VSCode
+.vscode/
+
+# PyCharm
+.idea/
